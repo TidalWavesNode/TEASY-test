@@ -1,0 +1,89 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# EasyApe config.example.yaml
+# Copy to config.yaml and fill in your values before running.
+# ─────────────────────────────────────────────────────────────────────────────
+
+app:
+  # live = execute real transactions
+  # dry  = simulate only — no transactions sent
+  mode: live
+
+  # Require a button or text "confirm" before executing
+  require_confirmation: true
+
+  # Only ask for confirmation when stake/unstake >= this amount (TAO)
+  confirm_over_tao: 0.5
+
+  # Seconds before a pending confirmation expires
+  confirm_ttl_seconds: 120
+
+# ── Telegram ──────────────────────────────────────────────────────────────────
+# Get your token from @BotFather on Telegram
+telegram:
+  enabled: true
+  bot_token: "YOUR_TELEGRAM_BOT_TOKEN"
+
+# ── Discord ───────────────────────────────────────────────────────────────────
+# Get your token from https://discord.com/developers/applications
+discord:
+  enabled: false
+  bot_token: "YOUR_DISCORD_BOT_TOKEN"
+
+# ── Authorization ─────────────────────────────────────────────────────────────
+# IMPORTANT: Add your Telegram/Discord user IDs here.
+# Only listed users can control the bot.
+# Get your Telegram ID from @userinfobot.
+# Get your Discord ID via Settings > Advanced > Developer Mode > right-click username.
+auth:
+  telegram_user_ids:
+    - 123456789          # Replace with your Telegram user ID
+  discord_user_ids: []   # Add your Discord user ID if using Discord
+
+# ── Wallet ────────────────────────────────────────────────────────────────────
+btcli:
+  # btcli.path is kept for compatibility but no longer used for subprocess calls.
+  # The SDK reads wallets directly from wallets_dir.
+  path: btcli
+
+  # Which wallet profile to use by default
+  default_wallet: main
+
+  # Network: finney (mainnet) or test
+  common_args:
+    - --subtensor.network
+    - finney
+
+  wallets:
+    main:
+      # The name of your coldkey (e.g. what you used in: btcli wallet new-coldkey --wallet.name mycoldkey)
+      coldkey: mycoldkey
+
+      # Path to your Bittensor wallets directory
+      wallets_dir: /root/.bittensor/wallets
+
+      # Leave blank for passwordless wallets (recommended for bots)
+      password: ""
+
+      # Optional: if set, you can type "stake 0.5" without specifying a netuid
+      default_netuid:
+
+      # Default validator to use.  "tao.bot" is built-in.
+      # You can also paste an SS58 address here.
+      validator_all: tao.bot
+
+# ── Default command targets ───────────────────────────────────────────────────
+defaults:
+  # Fallback netuid if not specified in message (can also be set per-wallet above)
+  netuid:
+
+  # Fallback validator name or SS58 address
+  validator: tao.bot
+
+# ── Validator aliases ─────────────────────────────────────────────────────────
+validators:
+  delegates_fallback_url: https://raw.githubusercontent.com/opentensor/bittensor-delegates/main/public/delegates.json
+  cache_ttl_minutes: 60
+  aliases:
+    tao.bot: 5E2LP6EnZ54m3wS8s1yPvD5c3xo71kQroBw7aUVK32TKeZ5u
+    # Add your own:
+    # myvalidator: 5FHneW...

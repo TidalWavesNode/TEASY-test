@@ -1,0 +1,13 @@
+# ── Bittensor SDK  (replaces btcli subprocess calls entirely) ─────────────────
+# SDK v10 is recommended; v9.5+ should work.
+# btcli is no longer a required dependency — the SDK handles everything.
+bittensor>=9.5.0
+
+# ── Bot frameworks ────────────────────────────────────────────────────────────
+python-telegram-bot>=21.0
+discord.py>=2.3.2
+
+# ── Config / utilities ────────────────────────────────────────────────────────
+pyyaml>=6.0.1
+portalocker>=2.8.2
+requests>=2.31.0
