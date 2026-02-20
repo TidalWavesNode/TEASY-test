@@ -48,12 +48,12 @@ Designed for simplicity, safety, and beginner-friendly deployment.
 
 EasyApe connects your Telegram or Discord account to your Bittensor wallet and:
 
-✔ Parses simple commands like `stake 0.5 31`  
+✔ Parses simple commands like `stake 0.5 31`  (action amount subnet)
 ✔ Shows a clear transaction summary  
 ✔ Tracks portfolio performance  
 ✔ Calculates PnL & ROI  
 ✔ Stores transaction history  
-✔ Utilizes Bittensor SDK  
+✔ Utilizes Bittensor SDK for speed
 
 ---
 
