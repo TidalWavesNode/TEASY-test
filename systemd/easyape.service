@@ -1,31 +1,24 @@
 [Unit]
 Description=EasyApe - Text to Stake
-After=network-online.target
-Wants=network-online.target
-StartLimitIntervalSec=60
-StartLimitBurst=10
+After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/root/EasyApe
+User=root
 
-Environment=PYTHONUNBUFFERED=1
-Environment=PYTHONPATH=/root/EasyApe/src
-Environment=PATH=/root/EasyApe/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-Environment=HOME=/root
-Environment=BT_NO_PARSE_CLI_ARGS=1
+# ✅ IMPORTANT: Installer should replace this with actual repo path
+WorkingDirectory=__EASYAPE_ROOT__
 
-ExecStart=/root/EasyApe/.venv/bin/python -u -m stakechat_bot.main --config /root/EasyApe/config.yaml
+ExecStart=__EASYAPE_ROOT__/.venv/bin/python \
+    -u -m stakechat_bot.main \
+    --config __EASYAPE_ROOT__/config.yaml
 
 Restart=always
 RestartSec=5
 
-User=root
-Group=root
-
-StandardOutput=journal
-StandardError=journal
-LimitNOFILE=65536
+# Cleaner shutdown behavior
+TimeoutStopSec=10
+KillSignal=SIGINT
 
 [Install]
 WantedBy=multi-user.target
