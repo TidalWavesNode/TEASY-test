@@ -63,7 +63,7 @@ class ValidatorResolver:
             return None
 
         lv = v.lower()
-        if lv in {"tao.bot", "taobot", "tao_bot"}:
+        if lv in {"default", "tao.bot", "taobot", "tao_bot"}:
             return self.TAOBOT_HOTKEY
 
         # If it looks like an ss58 address, just use it.
