@@ -126,14 +126,30 @@ class BittensorClient:
                 coldkey_ss58=wallet.coldkey.ss58_address
             )
             stakes = []
+
+            # ✅ UPDATED: live subnet pricing instead of stake.tao
+            price_cache = {}
+
             for s in raw:
+                alpha = float(s.stake)
+
+                if s.netuid not in price_cache:
+                    try:
+                        price_cache[s.netuid] = float(sub.get_subnet_price(s.netuid))
+                    except Exception:
+                        price_cache[s.netuid] = 0.0
+
+                rate = price_cache[s.netuid]
+                tao_value = alpha * rate if rate else 0.0
+
                 stakes.append({
                     "netuid":    s.netuid,
                     "hotkey":    s.hotkey_ss58,
-                    "alpha":     float(s.stake),
-                    "tao_value": float(s.stake.tao),
-                    "rate":      float(s.stake.tao) / float(s.stake) if float(s.stake) > 0 else 0.0,
+                    "alpha":     alpha,
+                    "tao_value": tao_value,
+                    "rate":      rate,
                 })
+
             return float(free), stakes
 
         try:
@@ -144,7 +160,7 @@ class BittensorClient:
             return BalanceResult(free_tao=0.0)
 
     # ─────────────────────────────────────────────
-    # Stake (FIXED)
+    # Stake
     # ─────────────────────────────────────────────
 
     async def add_stake(
@@ -157,7 +173,6 @@ class BittensorClient:
 
         sub = await self.subtensor()
 
-        # ✅ FIX: no wallet.hotkey fallback
         if hotkey_ss58 is None:
             hotkey_ss58 = await self.best_hotkey_for_netuid(
                 sub, wallet.coldkey.ss58_address, netuid
@@ -166,10 +181,7 @@ class BittensorClient:
         if not hotkey_ss58:
             return StakeResult(
                 ok=False,
-                message=(
-                    "❌ No validator hotkey available\n\n"
-                    "Set a default validator or specify one."
-                ),
+                message="❌ No validator hotkey available",
                 netuid=netuid,
             )
 
@@ -216,7 +228,7 @@ class BittensorClient:
         )
 
     # ─────────────────────────────────────────────
-    # Unstake (FIXED)
+    # Unstake
     # ─────────────────────────────────────────────
 
     async def remove_stake(
@@ -235,11 +247,7 @@ class BittensorClient:
             )
 
         if not hotkey_ss58:
-            return StakeResult(
-                ok=False,
-                message="❌ No validator hotkey found for this subnet",
-                netuid=netuid,
-            )
+            return StakeResult(False, "❌ No validator hotkey found", netuid=netuid)
 
         alpha_before = await self._alpha_on_netuid(
             sub, wallet.coldkey.ss58_address, netuid
