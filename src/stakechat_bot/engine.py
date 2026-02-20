@@ -641,14 +641,28 @@ class Engine:
                 lines.append(f"  PnL:   {color} `{pnl:+.4f} τ`  |  ROI: `{roi:+.2f}%`")
             lines.append("")
 
-        realized = sum(t.get("tao_received", 0.0) for t in history if t.get("type") == "unstake")
+        realized = sum(t.get("pnl", 0.0) for t in history if t.get("type") == "unstake")
+
+        capital_deployed = sum(
+            t.get("tao_spent", 0.0)
+            for t in history
+            if t.get("type") == "stake"
+        )
+
         total_pnl = unrealized + realized
-        port_roi = total_pnl / total_cost * 100 if total_cost else 0.0
+        port_roi = total_pnl / capital_deployed * 100 if capital_deployed else 0.0
+        open_roi = unrealized / total_cost * 100 if total_cost else 0.0
+        realized_roi = realized / capital_deployed * 100 if capital_deployed else 0.0
+
         port_color = "🟢" if total_pnl >= 0 else "🔴"
+        open_color = "🟢" if unrealized >= 0 else "🔴"
+        realized_color = "🟢" if realized >= 0 else "🔴"
 
         if total_cost:
             lines.insert(2, f"  Portfolio PnL (total): {port_color} `{total_pnl:+.4f} τ`")
-            lines.insert(3, f"  Portfolio ROI:        {port_color} `{port_roi:+.2f}%`\n")
+            lines.insert(3, f"  Portfolio ROI:        {port_color} `{port_roi:+.2f}%`")
+            lines.insert(4, f"  Open ROI:             {open_color} `{open_roi:+.2f}%`")
+            lines.insert(5, f"  Realized ROI:         {realized_color} `{realized_roi:+.2f}%`\n")
 
         lines.append("─────────────────")
         lines.append("*Portfolio Summary*")
@@ -659,6 +673,8 @@ class Engine:
             lines.append(f"  Realized PnL:    `{realized:+.4f} τ`")
             lines.append(f"  Total PnL:       {port_color} `{total_pnl:+.4f} τ`")
             lines.append(f"  Portfolio ROI:   {port_color} `{port_roi:+.2f}%`")
+            lines.append(f"  Open ROI:        {open_color} `{open_roi:+.2f}%`")
+            lines.append(f"  Realized ROI:    {realized_color} `{realized_roi:+.2f}%`")
 
         return BotResponse("\n".join(lines))
 
