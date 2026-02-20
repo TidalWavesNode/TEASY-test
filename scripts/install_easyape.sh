@@ -220,3 +220,15 @@ echo
 echo "📜 Logs:"
 echo "journalctl -u easyape -f"
 echo
+
+echo
+echo "──────────────────────────────────────────────────"
+echo -e "${YELLOW}💝 Support EasyApe${NC}"
+echo
+echo "If EasyApe helps you, consider supporting development:"
+echo
+echo "TAO Donations:"
+echo "5E2LP6EnZ54m3wS8s1yPvD5c3xo71kQroBw7aUVK32TKeZ5u"
+echo
+echo "Thank you for supporting the project 🦍"
+echo
