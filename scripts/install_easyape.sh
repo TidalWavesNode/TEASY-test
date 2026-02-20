@@ -36,6 +36,30 @@ python3 -m venv "$VENV_DIR" || true
 
 success "Environment ready"
 
+success "Environment ready"
+
+# ─────────────────────────────────────────────
+# Bittensor CLI (explicit install for users)
+# ─────────────────────────────────────────────
+
+echo
+echo -e "${CYAN}Installing Bittensor CLI${NC}"
+echo "──────────────────────────────────────────────────"
+
+if command -v btcli >/dev/null 2>&1; then
+    success "Bittensor CLI already installed"
+else
+    note "Installing bittensor-cli==9.18.1 ..."
+    "$VENV_DIR/bin/pip" install bittensor-cli==9.18.1
+
+    if command -v btcli >/dev/null 2>&1; then
+        success "Bittensor CLI installed"
+        success "btcli version: $(btcli --version)"
+    else
+        warn "btcli not found after install (unexpected)"
+    fi
+fi
+
 echo
 info "Scanning Bittensor wallets..."
 
