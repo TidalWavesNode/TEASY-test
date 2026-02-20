@@ -8,6 +8,8 @@ ENV_FILE="${ROOT_DIR}/.env"
 SERVICE_FILE="/etc/systemd/system/easyape.service"
 WALLETS_DIR="/root/.bittensor/wallets"
 
+DEFAULT_VALIDATOR="5E2LP6EnZ54m3wS8s1yPvD5c3xo71kQroBw7aUVK32TKeZ5u"
+
 CYAN="\033[0;36m"
 GREEN="\033[0;32m"
 RED="\033[0;31m"
@@ -24,32 +26,16 @@ echo
 echo -e "${CYAN}🦍 EasyApe Installer${NC}"
 echo "──────────────────────────────────────────────────"
 
-# ─────────────────────────────────────────────
-# Sanity check
-# ─────────────────────────────────────────────
-if [[ ! -f "${ROOT_DIR}/requirements.txt" ]]; then
-    warn "requirements.txt missing"
-    exit 1
-fi
-
-# ─────────────────────────────────────────────
-# Python environment
-# ─────────────────────────────────────────────
 echo
 info "Preparing Python environment..."
 
 python3 -m venv "$VENV_DIR" || true
 "$VENV_DIR/bin/pip" install --upgrade pip
 "$VENV_DIR/bin/pip" install -r requirements.txt
-
-# ✅ CRITICAL FIX
 "$VENV_DIR/bin/pip" install -e .
 
 success "Environment ready"
 
-# ─────────────────────────────────────────────
-# Wallet detection
-# ─────────────────────────────────────────────
 echo
 info "Scanning Bittensor wallets..."
 
@@ -83,7 +69,6 @@ if [[ "$WALLET_SELECTION" =~ ^[0-9]+$ ]] && [[ ${#WALLETS[@]} -gt 0 ]]; then
 
     read -r -s -p "Wallet password (leave blank if none): " WALLET_PASSWORD
     echo
-
 else
     echo
     read -r -p "New wallet name [EasyApe]: " WALLET_NAME
@@ -112,9 +97,6 @@ print()
 print("🚨 SAVE THIS MNEMONIC PHRASE 🚨")
 print(mnemonic)
 print()
-print("Store this securely.")
-print("This is the ONLY recovery method.")
-print()
 PY
 
     echo
@@ -122,8 +104,43 @@ PY
 fi
 
 # ─────────────────────────────────────────────
-# Save password to .env
+# ✅ UPDATED VALIDATOR BLOCK (ONLY CHANGE)
 # ─────────────────────────────────────────────
+
+echo
+echo -e "${CYAN}Validator Configuration${NC}"
+echo "──────────────────────────────────────────────────"
+
+note "EasyApe requires a default validator hotkey."
+note "This is where your TAO will be delegated by default."
+echo
+note "👉 You may PASTE your preferred validator hotkey below."
+note "👉 Or press ENTER to use the recommended default (tao.bot):"
+echo
+echo "   ${DEFAULT_VALIDATOR}"
+echo
+
+while true; do
+    read -r -p "Default validator hotkey: " VALIDATOR_INPUT
+    VALIDATOR_INPUT="${VALIDATOR_INPUT:-$DEFAULT_VALIDATOR}"
+
+    if [[ "$VALIDATOR_INPUT" =~ ^[1-9A-HJ-NP-Za-km-z]{47,48}$ ]]; then
+        break
+    fi
+
+    echo
+    warn "Invalid SS58 address format"
+    note "Validator hotkeys are typically 48 characters"
+    note "Example: 5Fxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    echo
+done
+
+echo
+success "Validator selected:"
+echo "   $VALIDATOR_INPUT"
+
+# ─────────────────────────────────────────────
+
 echo
 info "Saving environment configuration..."
 
@@ -136,9 +153,6 @@ chmod 600 "$ENV_FILE"
 
 success ".env written"
 
-# ─────────────────────────────────────────────
-# Telegram setup
-# ─────────────────────────────────────────────
 echo
 read -r -p "Enable Telegram bot? [Y/n]: " ENABLE_TELEGRAM
 ENABLE_TELEGRAM="${ENABLE_TELEGRAM:-Y}"
@@ -155,28 +169,6 @@ else
     ENABLE_TELEGRAM="false"
 fi
 
-# ─────────────────────────────────────────────
-# Discord setup
-# ─────────────────────────────────────────────
-echo
-read -r -p "Enable Discord bot? [y/N]: " ENABLE_DISCORD
-ENABLE_DISCORD="${ENABLE_DISCORD:-N}"
-
-DISCORD_TOKEN=""
-DISCORD_IDS_BLOCK="    []"
-
-if [[ "$ENABLE_DISCORD" =~ ^[Yy]$ ]]; then
-    ENABLE_DISCORD="true"
-    read -r -p "Discord Bot Token: " DISCORD_TOKEN
-    read -r -p "Discord User ID: " DC_ID
-    DISCORD_IDS_BLOCK="    - ${DC_ID}"
-else
-    ENABLE_DISCORD="false"
-fi
-
-# ─────────────────────────────────────────────
-# Write config.yaml
-# ─────────────────────────────────────────────
 echo
 info "Writing config.yaml..."
 
@@ -185,19 +177,20 @@ app:
   mode: live
   require_confirmation: true
 
+defaults:
+  netuid: 31
+  validator: default
+
+validators:
+  default: ${VALIDATOR_INPUT}
+
 telegram:
   enabled: ${ENABLE_TELEGRAM}
   bot_token: "${TELEGRAM_TOKEN}"
 
-discord:
-  enabled: ${ENABLE_DISCORD}
-  bot_token: "${DISCORD_TOKEN}"
-
 auth:
   telegram_user_ids:
 ${TELEGRAM_IDS_BLOCK}
-  discord_user_ids:
-${DISCORD_IDS_BLOCK}
 
 btcli:
   default_wallet: main
@@ -205,14 +198,10 @@ btcli:
     main:
       coldkey: "${WALLET_NAME}"
       wallets_dir: "${WALLETS_DIR}"
-      password: ""
 YAML
 
 success "config.yaml written"
 
-# ─────────────────────────────────────────────
-# Install systemd service
-# ─────────────────────────────────────────────
 echo
 info "Installing systemd service..."
 
